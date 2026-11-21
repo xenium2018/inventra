@@ -1,7 +1,9 @@
 from functools import lru_cache
+
 from langchain_community.vectorstores import FAISS
-from langchain_google_genai import GoogleGenerativeAIEmbeddings
 from langchain_core.documents import Document
+from langchain_google_genai import GoogleGenerativeAIEmbeddings
+
 
 @lru_cache(maxsize=1)
 def get_climate_advisory_retriever():

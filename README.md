@@ -11,7 +11,7 @@
   - **Data Understanding Agent:** Queries historical sales, inventory thresholds, financial ledgers, and vendor metrics via LangChain `@tool` functions, enriched with semantic climate advisories from **FAISS**.
   - **Weather Forecasting Agent:** Evaluates regional meteorological forecasts (`north`, `south`, `east`, `west`, `central`) and classifies operational risk levels.
   - **Decision & Optimization Agent:** Combines operational records with weather telemetry using **Pydantic** structured outputs to predict SKU demand surges, recommend reorder quantities, and calculate capital impact.
-- **MCP-Enabled Smart Ticketing (`FastMCP` / `MCPServer`):**
+- **MCP-Enabled Smart Ticketing (`FastMCP`):**
   - Automatically generates and routes structured procurement/low-stock action tickets (`ticket_id`, `sku`, `rationale`, `forecasted_demand`, `recommended_qty`, `financial_impact`, `vendor_id`) into SQLite and exposes MCP tools for external integrations.
 - **Hybrid Storage & Persistent Audit Trail:**
   - Ingests CSV datasets (`inventory.csv`, `sales.csv`, `finance.csv`, `vendors.csv`) into **SQLite** with automatic schema migration, pairs them with a **FAISS** vector store, and logs every agent decision in `audit_logs`.
@@ -24,12 +24,10 @@
 
 ```text
 inventra/
-├── .env                         # API keys (GOOGLE_API_KEY, OPENWEATHER_API_KEY)
 ├── requirements.txt             # Python dependencies
 ├── README.md                    # Project documentation
 ├── app.py                       # Main Streamlit dashboard & user workflow
 ├── ui_theme.py                  # Executive UI styling & HTML component renderers
-├── tools.py                     # LangChain @tool functions over CSV datasets & weather
 │
 ├── data/                        # Source business datasets
 │   ├── finance.csv              # Financial ledger (sales & purchase transactions)
@@ -38,20 +36,20 @@ inventra/
 │   └── vendors.csv              # Supplier quality scores, lead times & reliability
 │
 ├── database/                    # Hybrid relational + vector storage layer
-│   ├── __init__.py
 │   ├── setup_db.py              # CSV-to-SQLite loader, schema migration & ticket updates
 │   ├── vector_store.py          # Cached FAISS semantic retriever for climate advisories
-│   └── inventra.db              # Auto-generated SQLite database
 │
 ├── agents/                      # LangGraph multi-agent orchestration
-│   ├── __init__.py
+│   ├── agents.py                # Standalone LangChain agent
 │   ├── state.py                 # TypedDict state & Pydantic validation schemas
 │   └── graph.py                 # Supervisor router, specialist nodes & retry logic
 │
 └── mcp_server/                  # Model Context Protocol (MCP) server
-    ├── __init__.py
+    ├── tools.py                 # LangChain tools over CSV datasets & sample weather
     └── ticket_server.py         # Exposes create_action_ticket & list_open_tickets tools
 ```
+
+The `.env`, virtual environment, Python caches, and generated SQLite database are local-only and are not committed.
 
 ---
 
@@ -60,7 +58,7 @@ inventra/
 - **Python 3.12+**
 - **LLM & Embeddings:** Google Gemini API (`gemini-3.8-flash` & `models/gemini-embedding-001`) via `langchain-google-genai`
 - **Agent Orchestration:** `langgraph` & `langchain-core`
-- **Action Protocol:** `mcp` (MCP Python SDK v2 `MCPServer`)
+- **Action Protocol:** `mcp` (MCP Python SDK v1 `FastMCP`)
 - **Storage & Retrieval:** `sqlite3`, `faiss-cpu`, `pandas`
 - **Validation & Resilience:** `pydantic`, `tenacity`, `python-dotenv`
 - **Frontend & Visualization:** `streamlit`, `plotly`
@@ -74,27 +72,25 @@ inventra/
 cd inventra
 ```
 
-### 2. Create & Activate a Virtual Environment *(Recommended)*
+### 2. Create a Virtual Environment *(Recommended)*
 ```powershell
-python -m venv venv
-.\venv\Scripts\Activate.ps1
+py -m venv .venv
 ```
 
 ### 3. Install Dependencies
 ```bash
-python -m pip install -r requirements.txt
+.\.venv\Scripts\python.exe -m pip install -r requirements.txt
 ```
 
 ### 4. Configure Environment Variables
 Create a `.env` file in the root directory:
 ```env
 GOOGLE_API_KEY=your_gemini_api_key_here
-OPENWEATHER_API_KEY=your_openweather_api_key_here
 ```
 
 ### 5. Run the Streamlit Application
 ```bash
-python -m streamlit run app.py
+.\.venv\Scripts\python.exe -m streamlit run app.py
 ```
 On first launch, `init_db()` automatically loads the CSV files from `data/` into `database/inventra.db`.
 

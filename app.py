@@ -7,7 +7,13 @@ from dotenv import load_dotenv
 
 from agents.graph import build_inventra_graph
 from database.setup_db import get_db_connection, init_db, update_ticket_status
-from ui_theme import render_header, render_kpis, render_pipeline, render_sku_card
+from ui_theme import (
+    render_header,
+    render_kpis,
+    render_langgraph_diagram,
+    render_pipeline,
+    render_sku_card,
+)
 
 load_dotenv()
 init_db()
@@ -57,6 +63,8 @@ tab_copilot, tab_tickets, tab_analytics, tab_data = st.tabs([
 
 with tab_copilot:
     render_pipeline("last_result" in st.session_state)
+    with st.expander("🔍 View Live LangGraph Workflow Topology", expanded=False):
+        render_langgraph_diagram(get_compiled_graph())
 
     active_region = region
     preset = ""

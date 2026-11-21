@@ -1,4 +1,6 @@
 import streamlit as st
+import streamlit.components.v1 as components
+
 
 def render_header():
     st.markdown("""
@@ -156,3 +158,26 @@ def render_sku_card(rec: dict):
         f'<div class="sku-desc">{rec["risk_rationale"]}</div></div>',
         unsafe_allow_html=True,
     )
+
+def render_langgraph_diagram(compiled_graph):
+    st.subheader("🕸️ Live Multi-Agent Orchestration Graph")
+    try:
+        # Built-in LangGraph PNG renderer (uses Mermaid.ink API)
+        png_bytes = compiled_graph.get_graph().draw_mermaid_png()
+        st.image(png_bytes, caption="LangGraph Supervisor & Conditional Routing Topology")
+    except Exception:
+        # Offline fallback using Mermaid.js directly in browser
+        mermaid_code = compiled_graph.get_graph().draw_mermaid()
+        components.html(
+            f"""
+            <div class="mermaid" style="background:#ffffff; padding:16px; border-radius:12px; border:1px solid #cbd5e1; text-align:center;">
+            {mermaid_code}
+            </div>
+            <script type="module">
+              import mermaid from 'https://jsdelivr.net';
+              mermaid.initialize({{ startOnLoad: true, theme: 'default' }});
+            </script>
+            """,
+            height=420,
+            scrolling=True,
+        )
